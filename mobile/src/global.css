@@ -1,3 +1,15 @@
+/*
+ * NativeWind compiles this file; the pre-existing custom properties below are
+ * kept because `react-native-web` reads them for font stacks.
+ *
+ * Comments here must be CSS block comments. A `//` line is not valid CSS and
+ * makes PostCSS reject the whole file, which fails silently at runtime as every
+ * Tailwind class becoming a no-op.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,

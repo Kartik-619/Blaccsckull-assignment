@@ -1,0 +1,10 @@
+node_modules/
+dist/
+
+# Real environment files. Only .env.example belongs in the repository.
+.env
+.env.*
+!.env.example
+
+# Output from a backgrounded dev server.
+*.log

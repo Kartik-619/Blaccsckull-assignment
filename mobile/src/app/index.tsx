@@ -1,84 +1,28 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Redirect } from 'expo-router';
+import { Text, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { DEV_COMPETITION_ID } from '@/lib/api';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
+const MISSING_ID_TITLE = 'No competition configured';
+const MISSING_ID_MESSAGE =
+  'Set EXPO_PUBLIC_DEV_COMPETITION_ID in .env to the id `npm run seed` printed, then restart the dev server with --clear.';
+
+/**
+ * `/` is a redirect, not a screen. The brief is one screen, so there is no home
+ * to render; this only exists so the app opens on something real instead of
+ * Expo Router's "Unmatched Route" placeholder. See DECISIONS.md.
+ */
+export default function Index() {
+  // Redirecting to `/competition/` with an empty id would land on the unmatched
+  // route this file exists to avoid, so an unconfigured value says so instead.
+  if (DEV_COMPETITION_ID === '') {
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+      <View className="flex-1 items-center justify-center gap-2 bg-background px-6">
+        <Text className="text-center text-lg font-bold text-gray-900">{MISSING_ID_TITLE}</Text>
+        <Text className="text-center text-sm text-gray-500">{MISSING_ID_MESSAGE}</Text>
+      </View>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+
+  return <Redirect href={`/competition/${DEV_COMPETITION_ID}`} />;
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Hello
-          </ThemedText>
-        </ThemedView>
-
-      
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});

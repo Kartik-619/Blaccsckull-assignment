@@ -1,56 +1,109 @@
-# Welcome to your Expo app 👋
+# Feedants — Competition Details
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+One React Native screen: the Competition Details screen from Feedants. It reads a
+single competition from the backend and renders the hero, judges, countdown,
+important dates, previous winners, tabs, rewards, referral banner and a static
+bottom tab bar.
 
-## Get started
+It is deliberately a single screen. There is no home, explore, profile, auth or
+onboarding flow, and no navigation beyond the one route.
 
-1. Install dependencies
+## Requirements
 
-   ```bash
-   npm install
-   ```
+- Node 20+
+- A running MongoDB and the backend in `../server`
+- Expo Go, a simulator, or a development build
 
-2. Start the app
+## Setup
 
-   ```bash
-   npx expo start
-   ```
+### 1. Backend
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+The app needs a competition to display. The seed script creates one whose
+registration window is open right now, registers the seeded dancer against it, and
+prints the three values the app needs.
 
 ```bash
-npm run reset-project
+cd ../server
+cp .env.example .env          # then set MONGODB_URI if it is not the default
+npm run seed                  # prints the three EXPO_PUBLIC_* values below
+npm start                     # serves http://localhost:4000/api/v1
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+MongoDB is the only external service. If you do not have one running, Docker
+works:
 
-### Other setup steps
+```bash
+docker run -d --name feedants-mongo -p 27017:27017 mongo:7
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 2. App
 
-## Learn more
+```bash
+cd ../mobile
+cp .env.example .env
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Fill `.env` in with the three values the seed printed:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Variable | Value |
+| --- | --- |
+| `EXPO_PUBLIC_API_BASE_URL` | `http://localhost:4000/api/v1` |
+| `EXPO_PUBLIC_DEV_USER_ID` | the user ObjectId the seed printed |
+| `EXPO_PUBLIC_DEV_COMPETITION_ID` | the competition ObjectId the seed printed |
 
-## Join the community
+`EXPO_PUBLIC_API_BASE_URL` **must include `/api/v1`** — the client calls
+`/competitions/:id` relative to it.
 
-Join our community of developers creating universal apps.
+A physical device cannot reach `localhost`. Use your machine's LAN IP instead
+(`http://192.168.x.x:4000/api/v1`), and make sure the phone is on the same
+network. On the Android emulator use `http://10.0.2.2:4000/api/v1`.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 3. Run
+
+```bash
+npm install
+npx expo start
+```
+
+```bash
+npm install
+npx expo start
+```
+
+Open the app. `/` redirects to `/competition/<EXPO_PUBLIC_DEV_COMPETITION_ID>`, so
+there is nothing to type.
+
+> **`EXPO_PUBLIC_*` values are inlined at build time.** After editing `.env`,
+> restart with `npx expo start --clear`. A plain restart keeps serving the old
+> values, and the symptom is `/` showing "No competition configured" even though
+> the variable is set.
+
+## Checks
+
+```bash
+npx tsc --noEmit   # types
+npm run lint       # eslint
+```
+
+## What is not real yet
+
+The backend does not serve several fields the design uses. Those components are
+built and typed as optional, and render an honest empty state until the field
+lands — the API was not changed to make them appear.
+
+| Missing | Component shows |
+| --- | --- |
+| `judge` | "Judge details coming soon" |
+| `previousWinners` | "No past winners yet" |
+| `judgingParameters`, `eligibility` | placeholder text in the tabs |
+| `disclaimer` | the section is omitted |
+| `certificateProvided` | the certificate line is omitted |
+| `prizeDistributionVideoUrl` | "Coming soon" alert |
+| submission start/close dates | falls back to the competition's start and end |
+
+Also not implemented, and out of scope for this screen: cancelling a
+registration, uploading a submission, video playback, real i18n, and referral
+link tracking. The referral link is built from `EXPO_PUBLIC_DEV_USER_ID` as a
+stand-in until the API serves a per-user code.
+
+See [DECISIONS.md](./DECISIONS.md) for the reasoning behind each of these.

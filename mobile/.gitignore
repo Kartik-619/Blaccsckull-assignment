@@ -31,6 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
+# `.env` holds the dev user id and the backend URL. Only `.env.example` is
+# committed; `.env` matches exactly and so does not swallow `.env.example`.
+.env
 .env*.local
 
 # typescript
